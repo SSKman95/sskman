@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    triggers {
+        pollSCM 'H/5 * * * *'
+    }
+    stages{
+        stage('git'){
+            steps {
+                git branch: 'main', url: 'https://github.com/SSKman95/sskman'
+            }
+        }
+        stage('clean'){
+            steps {
+                dir('projects/erphrense') {
+                    sh '''chmod u+x ./mvnw'''
+                    sh './mvnw clean'
+                }
+            }
+        }
+        stage('compile'){
+            steps {
+                dir('projects/erphrense') {
+                sh '''chmod u+x ./mvnw'''
+                sh './mvnw compile'}
+            }
+        }
+        stage('test'){
+            steps {
+                dir('projects/erphrense') {
+                sh '''chmod u+x ./mvnw'''
+                sh './mvnw test'}
+            }
+        }
+        stage('package'){
+            steps {
+                dir('projects/erphrense') {
+                sh '''chmod u+x ./mvnw'''
+                sh './mvnw package'}
+            }
+        }
+        stage('rename'){
+            steps {
+                dir('projects/erphrense') {
+                sh 'mv target/erphrense-0.0.1-SNAPSHOT.jar erphrense-${BUILD_NUMBER}.jar'
+                }
+            }
+        }
+        stage('post'){
+            steps {
+                dir('projects/erphrense') {
+                archiveArtifacts artifacts: 'erphrense-*.jar', followSymlinks: false}
+            }
+        }
+    }
+}
